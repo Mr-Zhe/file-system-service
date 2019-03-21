@@ -88,7 +88,6 @@ public class ExcelParseHandler<T> extends DefaultHandler {
         getCellData(name);
         //如果标签名称为 row ，这说明已到行尾，调用 optRows() 方法
         if ("row".equals(name)) {
-
             if (cellData.isEmpty()) {
                 return;
             }

@@ -103,7 +103,7 @@ public class Excel2007Reader<T> {
                 response.setDataTime(parseHandler.getRowReader().getDataTime());
             }
         } catch (SAXException | IOException | OpenXML4JException e) {
-            log.error("");
+            log.error("error", e);
             response.setMessage(e.getMessage());
             response.setDatas(Collections.emptyList());
         }
