@@ -1,22 +1,14 @@
 package com.example.myapp;
 
-import com.example.myapp.commons.utils.StringUtils;
 import com.example.myapp.commons.utils.ZIPUtil;
-import com.github.junrar.Archive;
 import com.github.junrar.exception.RarException;
-import com.github.junrar.rarfile.FileHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.security.Provider;
 import java.security.Security;
-import java.util.Enumeration;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 public class ZipTest {
     private static final Logger logger = LoggerFactory.getLogger(ZipTest.class);
@@ -39,7 +31,7 @@ public class ZipTest {
 
             //ZIPUtil.decompress("e:\\monthUserReport_201708_5_e2862f1b4dc8a122a8bc5ae26556b0ed1.rar","e:\\bbbbbbbbb\\bbbaaa");
 
-            ZIPUtil.decompressFileForRAR("E:\\bbb.rar","E:\\bbbbbbbbb\\bbbaaa");
+            ZIPUtil.decompressFileForRAR("E:\\pay.rar","E:\\bbbbbbbbb\\bbbaaa");
 
         } catch (IOException e) {
             e.printStackTrace();
