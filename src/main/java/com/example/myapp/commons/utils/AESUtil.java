@@ -1,5 +1,7 @@
 package com.example.myapp.commons.utils;
 
+import org.apache.commons.lang3.StringUtils;
+
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;

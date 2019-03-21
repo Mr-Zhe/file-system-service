@@ -34,6 +34,17 @@ public class Excel2007Reader<T> {
         return parser;
     }
 
+    /**
+     * 遍历工作簿中所有的电子表格
+     * @author zhangzhe
+     * @date 2019/3/21 15:07
+     * @param is 数据源
+     * @param rowReader 行数据解析器
+     * @param headCount 表头开始行号
+     * @param oneSheet 只读第一个sheet
+     * @return
+     * @version
+     */
     public ExcelParseResponse<T> process(InputStream is, IRowReader rowReader, int headCount, boolean oneSheet) throws IOException, InvalidFormatException {
         try (OPCPackage pkg = OPCPackage.open(is)) {
             return doProcess(pkg, rowReader, headCount, oneSheet);
@@ -42,11 +53,10 @@ public class Excel2007Reader<T> {
 
     /**
      * 遍历工作簿中所有的电子表格
-     *
      * @param filePath  文件路径
      * @param rowReader 行数据解析器
      * @param headCount 表头开始行号
-     * @param oneSheet  只读第一个sheet；
+     * @param oneSheet  只读第一个sheet
      * @return
      * @throws IOException
      */
@@ -58,11 +68,10 @@ public class Excel2007Reader<T> {
 
     /**
      * 遍历工作簿中所有的电子表格
-     *
      * @param pkg       数据源
      * @param rowReader 行数据解析器
      * @param headCount 表头开始行号
-     * @param oneSheet  只读第一个sheet；
+     * @param oneSheet  只读第一个sheet
      * @return
      * @throws IOException
      */

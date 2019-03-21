@@ -1,6 +1,5 @@
 package com.example.myapp.commons.utils.execl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.xssf.model.SharedStringsTable;
@@ -73,7 +72,6 @@ public class ExcelParseHandler<T> extends DefaultHandler {
             for (int i = 0; i < n; i++) {
                 cellData.add("");
             }
-
             String cellType = attributes.getValue("t");
             isNullCell = null == cellType;
             nextIsString = "s".equals(cellType);
@@ -104,7 +102,12 @@ public class ExcelParseHandler<T> extends DefaultHandler {
                 cellData.clear();
             }
         }
+    }
 
+    @Override
+    public void characters(char[] ch, int start, int length) throws SAXException {
+        //得到单元格内容的值
+        lastContents += new String(ch, start, length);
     }
 
     /**
@@ -144,7 +147,6 @@ public class ExcelParseHandler<T> extends DefaultHandler {
 
         //A1
         String lastCellRowIndex = lastColumn.replaceAll("[A-Z]+", "");
-
         //AB7
         String currentColumnTemp = currentColumn.replaceAll("\\d+", "");
         currentColumnTemp = fillChar(currentColumnTemp);
@@ -152,7 +154,6 @@ public class ExcelParseHandler<T> extends DefaultHandler {
 
         //  计算同一行空单元格数量，保持原逻辑
         if (rowIndex == Integer.valueOf(lastCellRowIndex)) {
-
             String lastColumnTemp = lastColumn.replaceAll("\\d+", "");
             lastColumnTemp = fillChar(lastColumnTemp);
             char[] lastColumnLetters = lastColumnTemp.toCharArray();
@@ -160,15 +161,13 @@ public class ExcelParseHandler<T> extends DefaultHandler {
                     + (currentColumnLetters[1] - lastColumnLetters[1]) * 26
                     + (currentColumnLetters[2] - lastColumnLetters[2]);
             return res - 1;
-        }
-        // 计算非同一行空单元格数量
-        else {
+        } else {
+            // 计算非同一行空单元格数量
             int res = (currentColumnLetters[0] - 64) * 26 * 26
                     + (currentColumnLetters[1] - 64) * 26
                     + (currentColumnLetters[2] - 64);
             return res - 1;
         }
-
     }
 
     private String fillChar(String str) {
@@ -182,12 +181,6 @@ public class ExcelParseHandler<T> extends DefaultHandler {
         }
         result.append(str);
         return result.toString();
-    }
-
-    @Override
-    public void characters(char[] ch, int start, int length) throws SAXException {
-        //得到单元格内容的值
-        lastContents += new String(ch, start, length);
     }
 
     public List<T> getDataList() {
