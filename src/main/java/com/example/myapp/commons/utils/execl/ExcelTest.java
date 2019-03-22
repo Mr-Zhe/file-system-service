@@ -17,7 +17,6 @@ import java.io.InputStream;
  */
 public class ExcelTest {
     public static void main(String[] args) {
-        String filePath = "G:\\test.xlsx";
        /* File file = new File(filePath);
         try (OPCPackage pkg = OPCPackage.open(filePath)) {
             XSSFReader reader = new XSSFReader(pkg);
@@ -33,13 +32,22 @@ public class ExcelTest {
         } catch (OpenXML4JException e) {
             e.printStackTrace();
         }*/
-        Excel2007Reader<TestVO> reader = new Excel2007Reader<>();
-        try {
-            ExcelParseResponse response = reader.process(filePath, new TestRowReader(), 0, true);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InvalidFormatException e) {
-            e.printStackTrace();
-        }
+       for (int i=0; i<10; i++){
+           String filePath = "G:\\data"+i+".xlsx";
+           new Thread(() -> {
+               System.out.println(String.format("线程号：%s，文件路径：%s", Thread.currentThread().getName(),  filePath));
+               long startTime = System.currentTimeMillis();
+               Excel2007Reader<TestVO> reader = new Excel2007Reader<>();
+               try {
+                   ExcelParseResponse response = reader.process(filePath, new TestRowReader(), 0, true);
+                   long needTime = System.currentTimeMillis() - startTime;
+                   System.out.println(String.format("线程号：%s，解析数据条数：%s，耗时：%s秒",Thread.currentThread().getName(), response.getDatas().size(), (double) needTime / 1000));
+               } catch (IOException e) {
+                   e.printStackTrace();
+               } catch (InvalidFormatException e) {
+                   e.printStackTrace();
+               }
+           }).start();
+       }
     }
 }

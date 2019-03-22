@@ -14,8 +14,8 @@ import static java.util.stream.Collectors.joining;
 public class TestRowReader implements IRowReader {
     @Override
     public Object getRowData(int sheetNo, int curRow, List<String> rowList) {
-        String data = rowList.stream().limit(4).collect(joining(","));
-        System.out.println(String.format("第%s行的数据是:%s", curRow, data));
+        //String data = rowList.stream().limit(4).collect(joining(","));
+        //System.out.println(String.format("第%s行的数据是:%s", curRow, data));
         TestVO testVO = new TestVO();
         testVO.setName(rowList.get(0));
         testVO.setEnglishName(rowList.get(1));
