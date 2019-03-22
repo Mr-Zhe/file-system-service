@@ -17,6 +17,7 @@ import java.io.InputStream;
  */
 public class ExcelTest {
     public static void main(String[] args) {
+
        /* File file = new File(filePath);
         try (OPCPackage pkg = OPCPackage.open(filePath)) {
             XSSFReader reader = new XSSFReader(pkg);
@@ -32,7 +33,7 @@ public class ExcelTest {
         } catch (OpenXML4JException e) {
             e.printStackTrace();
         }*/
-       for (int i=0; i<10; i++){
+       /*for (int i=0; i<10; i++){
            String filePath = "G:\\data"+i+".xlsx";
            new Thread(() -> {
                System.out.println(String.format("线程号：%s，文件路径：%s", Thread.currentThread().getName(),  filePath));
@@ -48,6 +49,6 @@ public class ExcelTest {
                    e.printStackTrace();
                }
            }).start();
-       }
+       }*/
     }
 }
