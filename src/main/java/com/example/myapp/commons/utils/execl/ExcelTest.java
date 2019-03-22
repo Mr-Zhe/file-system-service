@@ -8,6 +8,7 @@ import org.apache.poi.xssf.eventusermodel.XSSFReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.stream.Collectors;
 
 /**
  * @author ：zhangzhe
@@ -17,7 +18,15 @@ import java.io.InputStream;
  */
 public class ExcelTest {
     public static void main(String[] args) {
-
+        String filePath = "G:\\aabb.xls";
+        Excel2003Reader<TestVO> reader = new Excel2003Reader();
+        try {
+            ExcelParseResponse response = reader.process(filePath, false, new TestRowReader());
+            //String result = (String) response.getDatas().stream().collect(Collectors.joining(", "));
+            System.out.println("aaa");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
        /* File file = new File(filePath);
         try (OPCPackage pkg = OPCPackage.open(filePath)) {
             XSSFReader reader = new XSSFReader(pkg);

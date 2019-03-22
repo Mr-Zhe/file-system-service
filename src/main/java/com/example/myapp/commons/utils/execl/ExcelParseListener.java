@@ -1,5 +1,6 @@
 package com.example.myapp.commons.utils.execl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.eventusermodel.EventWorkbookBuilder;
 import org.apache.poi.hssf.eventusermodel.FormatTrackingHSSFListener;
 import org.apache.poi.hssf.eventusermodel.HSSFListener;
@@ -19,8 +20,9 @@ import java.util.List;
  * @date ：Created in 2019/3/22 14:06
  * @version: v.1.1
  */
-public class ExcelParseListener implements HSSFListener {
-    private int minColumns = -1;
+public class ExcelParseListener<T> implements HSSFListener {
+    //起始行
+    private int headRow = 0;
 
     //总行数
     private int totalRows=0;
@@ -31,7 +33,7 @@ public class ExcelParseListener implements HSSFListener {
     //上一单元格的序号
     private int lastColumnNumber;
 
-    //是否输出formula，还是它对应的值
+    //是否输出公式，还是它对应的值
     private boolean outputFormulaValues;
 
     //用于转换formulas
@@ -48,11 +50,13 @@ public class ExcelParseListener implements HSSFListener {
     private final HSSFDataFormatter formatter = new HSSFDataFormatter();
 
     //表索引
-    private int sheetIndex = 0;
+    private int sheetNo = 0;
 
-    private BoundSheetRecord[] orderedBSRs;
+    private String sheetName = "";
 
-    private ArrayList boundSheetRecords = new ArrayList();
+    private BoundSheetRecord[] boundSheetRecordArr;
+
+    private List boundSheetRecords = new ArrayList<>();
 
     private int nextRow;
 
@@ -67,10 +71,19 @@ public class ExcelParseListener implements HSSFListener {
     private List<String> cellList = new ArrayList<>();
 
     //判断整行是否为空行的标记
-    private boolean flag = false;
+    private boolean isNotNullRow = false;
 
-    private String sheetName;
 
+    //数据读取器
+    private IRowReader rowReader;
+
+    //数据集
+    private List<T> dataList = new ArrayList<>();
+
+    public ExcelParseListener(boolean outputFormulaValues, IRowReader rowReader) {
+        this.outputFormulaValues = outputFormulaValues;
+        this.rowReader = rowReader;
+    }
 
     /**
      * SSFListener 监听方法，处理Record处理每个单元格
@@ -82,9 +95,9 @@ public class ExcelParseListener implements HSSFListener {
      */
     @Override
     public void processRecord(Record record) {
-        int thisRow = -1;
-        int thisColumn = -1;
-        String thisStr = null;
+        int currentRow = -1;
+        int currentColumn = -1;
+        String element = null;
         String value;
         switch (record.getSid()) {
             case BoundSheetRecord.sid:
@@ -97,101 +110,98 @@ public class ExcelParseListener implements HSSFListener {
                     if (workbookBuildingListener != null && stubWorkbook == null) {
                         stubWorkbook = workbookBuildingListener.getStubHSSFWorkbook();
                     }
-
-                    if (orderedBSRs == null) {
-                        orderedBSRs = BoundSheetRecord.orderByBofPosition(boundSheetRecords);
+                    if (boundSheetRecordArr == null) {
+                        boundSheetRecordArr = BoundSheetRecord.orderByBofPosition(boundSheetRecords);
                     }
-                    sheetName = orderedBSRs[sheetIndex].getSheetname();
-                    sheetIndex++;
+                    sheetName = boundSheetRecordArr[sheetNo].getSheetname();
+                    sheetNo++;
                 }
                 break;
             case SSTRecord.sid:
                 sstRecord = (SSTRecord) record;
                 break;
             case BlankRecord.sid: //单元格为空白
-                BlankRecord brec = (BlankRecord) record;
-                thisRow = brec.getRow();
-                thisColumn = brec.getColumn();
-                thisStr = "";
-                cellList.add(thisColumn, thisStr);
+                BlankRecord blr = (BlankRecord) record;
+                currentRow = blr.getRow();
+                currentColumn = blr.getColumn();
+                cellList.add(currentColumn, "");
                 break;
             case BoolErrRecord.sid: //单元格为布尔类型
-                BoolErrRecord berec = (BoolErrRecord) record;
-                thisRow = berec.getRow();
-                thisColumn = berec.getColumn();
-                thisStr = berec.getBooleanValue() + "";
-                cellList.add(thisColumn, thisStr);
-                checkRowIsNull(thisStr);  //如果里面某个单元格含有值，则标识该行不为空行
+                BoolErrRecord ber = (BoolErrRecord) record;
+                currentRow = ber.getRow();
+                currentColumn = ber.getColumn();
+                element = ber.getBooleanValue() + "";
+                cellList.add(currentColumn, element);
+                checkRowIsNull(element);  //如果里面某个单元格含有值，则标识该行不为空行
                 break;
             case FormulaRecord.sid://单元格为公式类型
-                FormulaRecord frec = (FormulaRecord) record;
-                thisRow = frec.getRow();
-                thisColumn = frec.getColumn();
+                FormulaRecord fr = (FormulaRecord) record;
+                currentRow = fr.getRow();
+                currentColumn = fr.getColumn();
                 if (outputFormulaValues) {
-                    if (Double.isNaN(frec.getValue())) {
+                    if (Double.isNaN(fr.getValue())) {
                         outputNextStringRecord = true;
-                        nextRow = frec.getRow();
-                        nextColumn = frec.getColumn();
+                        nextRow = fr.getRow();
+                        nextColumn = fr.getColumn();
                     } else {
-                        thisStr = '"' + HSSFFormulaParser.toFormulaString(stubWorkbook, frec.getParsedExpression()) + '"';
+                        element = '"' + HSSFFormulaParser.toFormulaString(stubWorkbook, fr.getParsedExpression()) + '"';
                     }
                 } else {
-                    thisStr = '"' + HSSFFormulaParser.toFormulaString(stubWorkbook, frec.getParsedExpression()) + '"';
+                    element = '"' + HSSFFormulaParser.toFormulaString(stubWorkbook, fr.getParsedExpression()) + '"';
                 }
-                cellList.add(thisColumn, thisStr);
-                checkRowIsNull(thisStr);  //如果里面某个单元格含有值，则标识该行不为空行
+                cellList.add(currentColumn, element);
+                checkRowIsNull(element);  //如果里面某个单元格含有值，则标识该行不为空行
                 break;
             case StringRecord.sid: //单元格中公式的字符串
                 if (outputNextStringRecord) {
-                    StringRecord srec = (StringRecord) record;
-                    thisStr = srec.getString();
-                    thisRow = nextRow;
-                    thisColumn = nextColumn;
+                    StringRecord sr = (StringRecord) record;
+                    element = sr.getString();
+                    currentRow = nextRow;
+                    currentColumn = nextColumn;
                     outputNextStringRecord = false;
                 }
                 break;
             case LabelRecord.sid:
-                LabelRecord lrec = (LabelRecord) record;
-                curRow = thisRow = lrec.getRow();
-                thisColumn = lrec.getColumn();
-                value = lrec.getValue().trim();
-                value = value.equals("") ? "" : value;
-                cellList.add(thisColumn, value);
-                checkRowIsNull(value);  //如果里面某个单元格含有值，则标识该行不为空行
+                LabelRecord lr = (LabelRecord) record;
+                currentRow = lr.getRow();
+                currentColumn = lr.getColumn();
+                element = lr.getValue().trim();
+                cellList.add(currentColumn, element);
+                checkRowIsNull(element);  //如果里面某个单元格含有值，则标识该行不为空行
                 break;
             case LabelSSTRecord.sid: //单元格为字符串类型
-                LabelSSTRecord lsrec = (LabelSSTRecord) record;
-                curRow = thisRow = lsrec.getRow();
-                thisColumn = lsrec.getColumn();
+                LabelSSTRecord lsr = (LabelSSTRecord) record;
+                currentRow = lsr.getRow();
+                currentColumn = lsr.getColumn();
                 if (sstRecord == null) {
-                    cellList.add(thisColumn, "");
+                    cellList.add(currentColumn, "");
                 } else {
-                    value = sstRecord.getString(lsrec.getSSTIndex()).toString().trim();
+                    value = sstRecord.getString(lsr.getSSTIndex()).toString().trim();
                     value = value.equals("") ? "" : value;
-                    cellList.add(thisColumn, value);
+                    cellList.add(currentColumn, value);
                     checkRowIsNull(value);  //如果里面某个单元格含有值，则标识该行不为空行
                 }
                 break;
             case NumberRecord.sid: //单元格为数字类型
-                NumberRecord numrec = (NumberRecord) record;
-                curRow = thisRow = numrec.getRow();
-                thisColumn = numrec.getColumn();
+                NumberRecord nr = (NumberRecord) record;
+                currentRow = nr.getRow();
+                currentColumn = nr.getColumn();
 
                 //第一种方式
                 //value = formatListener.formatNumberDateCell(numrec).trim();//这个被写死，采用的m/d/yy h:mm格式，不符合要求
 
                 //第二种方式，参照formatNumberDateCell里面的实现方法编写
-                Double valueDouble=((NumberRecord)numrec).getValue();
-                String formatString=formatListener.getFormatString(numrec);
+                Double valueDouble= nr.getValue();
+                String formatString=formatListener.getFormatString(nr);
                 if (formatString.contains("m/d/yy")){
                     formatString="yyyy-MM-dd hh:mm:ss";
                 }
-                int formatIndex=formatListener.getFormatIndex(numrec);
+                int formatIndex=formatListener.getFormatIndex(nr);
                 value=formatter.formatRawCellContents(valueDouble, formatIndex, formatString).trim();
 
                 value = value.equals("") ? "" : value;
                 //向容器加入列值
-                cellList.add(thisColumn, value);
+                cellList.add(currentColumn, value);
                 checkRowIsNull(value);  //如果里面某个单元格含有值，则标识该行不为空行
                 break;
             default:
@@ -199,41 +209,42 @@ public class ExcelParseListener implements HSSFListener {
         }
 
         //遇到新行的操作
-        if (thisRow != -1 && thisRow != lastRowNumber) {
+        if (currentRow != -1 && currentRow != lastRowNumber) {
             lastColumnNumber = -1;
         }
 
         //空值的操作
         if (record instanceof MissingCellDummyRecord) {
             MissingCellDummyRecord mc = (MissingCellDummyRecord) record;
-            curRow = thisRow = mc.getRow();
-            thisColumn = mc.getColumn();
-            cellList.add(thisColumn, "");
+            curRow = currentRow = mc.getRow();
+            currentColumn = mc.getColumn();
+            cellList.add(currentColumn, "");
         }
 
         //更新行和列的值
-        if (thisRow > -1)
-            lastRowNumber = thisRow;
-        if (thisColumn > -1)
-            lastColumnNumber = thisColumn;
+        if (currentRow > -1) {
+            lastRowNumber = currentRow;
+            curRow = currentRow;
+        }
+        if (currentColumn > -1)
+            lastColumnNumber = currentColumn;
 
         //行结束时的操作
         if (record instanceof LastCellOfRowDummyRecord) {
-            if (minColumns > 0) {
-                //列值重新置空
-                if (lastColumnNumber == -1) {
-                    lastColumnNumber = 0;
+            if (isNotNullRow && curRow >= headRow) { //该行不为空行且该行不是第一行，发送（第一行为列名，不需要）
+                Object rowData = rowReader.getRowData(sheetNo, curRow, cellList);
+                if (rowData == null) {
+                } else if (!StringUtils.isEmpty(rowReader.getErrorMessage())) {
+                } else {
+                    dataList.add((T) rowData);
                 }
-            }
-            lastColumnNumber = -1;
-
-            if (flag&&curRow!=0) { //该行不为空行且该行不是第一行，发送（第一行为列名，不需要）
                 //ExcelReaderUtil.sendRows(filePath, sheetName, sheetIndex, curRow + 1, cellList); //每行结束时，调用sendRows()方法
                 totalRows++;
             }
             //清空容器
             cellList.clear();
-            flag=false;
+            isNotNullRow = false;
+            lastColumnNumber = -1;
         }
     }
 
@@ -242,8 +253,8 @@ public class ExcelParseListener implements HSSFListener {
      * @param value
      */
     private void checkRowIsNull(String value){
-        if (value != null && !"".equals(value)) {
-            flag = true;
+        if (StringUtils.isNotBlank(value)) {
+            isNotNullRow = true;
         }
     }
 
@@ -269,5 +280,17 @@ public class ExcelParseListener implements HSSFListener {
 
     public void setFormatListener(FormatTrackingHSSFListener formatListener) {
         this.formatListener = formatListener;
+    }
+
+    public List<T> getDataList() {
+        return dataList;
+    }
+
+    public int getTotalRows() {
+        return totalRows;
+    }
+
+    public String getSheetName() {
+        return sheetName;
     }
 }

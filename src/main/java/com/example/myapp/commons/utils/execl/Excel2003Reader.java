@@ -1,10 +1,12 @@
 package com.example.myapp.commons.utils.execl;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.poi.hssf.eventusermodel.*;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.List;
 
 /**
  * @author ：zhangzhe
@@ -22,10 +24,11 @@ public class Excel2003Reader<T> {
      * @param outputFormulaValues 是否输出公式，还是它对应的值
      * @throws Exception
      */
-    public int process(String fileName, boolean outputFormulaValues) throws Exception {
+    public ExcelParseResponse process(String fileName, boolean outputFormulaValues, IRowReader rowReader) throws Exception {
+        ExcelParseResponse response = new ExcelParseResponse();
         InputStream is = new FileInputStream(fileName);
         POIFSFileSystem fs = new POIFSFileSystem(is);
-        ExcelParseListener listener = new ExcelParseListener();
+        ExcelParseListener<T> listener = new ExcelParseListener(outputFormulaValues, rowReader);
         MissingRecordAwareHSSFListener recordListener = new MissingRecordAwareHSSFListener(listener);
         FormatTrackingHSSFListener formatListener = new FormatTrackingHSSFListener(recordListener);
         HSSFRequest request = new HSSFRequest();
@@ -39,11 +42,13 @@ public class Excel2003Reader<T> {
         }
 
         listener.setFormatListener(formatListener);
-        listener.setOutputFormulaValues(outputFormulaValues);
         HSSFEventFactory factory = new HSSFEventFactory();
         factory.processWorkbookEvents(request, fs);
-
-        return totalRows; //返回该excel文件的总行数，不包括首列和空行
+        List<T> data = listener.getDataList();
+        if (!CollectionUtils.isEmpty(data)){
+            response.setDatas(data);
+        }
+        return response;
     }
 }
 
