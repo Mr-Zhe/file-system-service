@@ -6,6 +6,7 @@ import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.xssf.eventusermodel.XSSFReader;
 import org.apache.poi.xssf.model.SharedStringsTable;
+import org.apache.poi.xssf.model.StylesTable;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
@@ -80,7 +81,8 @@ public class Excel2007Reader<T> {
         try {
             XSSFReader reader = new XSSFReader(pkg);
             SharedStringsTable sst = reader.getSharedStringsTable();
-            ExcelParseHandler<T> parseHandler = new ExcelParseHandler(rowReader, headCount, sst);
+            StylesTable stylesTable = reader.getStylesTable();
+            ExcelParseHandler<T> parseHandler = new ExcelParseHandler(rowReader, headCount, sst, stylesTable);
             XMLReader parser = fetchSheetParser(parseHandler);
             Iterator<InputStream> sheets = reader.getSheetsData();
             int sheetNo = 0;
