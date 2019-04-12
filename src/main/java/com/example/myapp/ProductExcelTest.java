@@ -16,27 +16,36 @@ import java.util.List;
 public class ProductExcelTest {
     public static void main(String[] args) {
         long startTime = System.currentTimeMillis();
-        String filePath = "D:\\WorkDocument\\20190318\\北斗星产品汇总表20190403.xlsx";
+//        String filePath = "D:\\WorkDocument\\20190318\\北斗星客户表.xlsx";
+        String filePath = "D:\\WorkDocument\\20190318\\北斗星客户表.xlsx";
         Excel2007Reader<ProductInfo> reader = new Excel2007Reader<>();
         try {
-            ExcelParseResponse response = reader.process(filePath, new ProductInfoReader(), 2, true);
+            ExcelParseResponse response = reader.process(filePath, new ProductInfoReader(), 1, true);
             List<ProductInfo> data = (List<ProductInfo>) response.getDatas();
+            StringBuilder sb = new StringBuilder();
+            sb.append("select * from supplychain.dealer where id_card in(");
+            data.forEach(info -> {
+                sb.append("'").append(info.getIdCard()).append("',");
+                /*sb.append("UPDATE supplychain.dealer ")
+                        .append("SET supplier_name = '")
+                        .append(info.getSupplierName()).append("',")
+                        .append("supplier_code = '")
+                        .append(info.getSupplierCode()).append("',")
+                        .append("supplier_address = '")
+                        .append(info.getSupplierAddress()).append("',")
+                        .append("supplier_mobile = '")
+                        .append(info.getSupplierMobile()).append("' ")
+                        .append("WHERE name = '")
+                        .append(info.getName()).append("'")
+                        .append("AND id_card = '")
+                        .append(info.getIdCard()).append("' ")
+                        .append("AND mobile = '")
+                        .append(info.getMobile()).append("';");*/
 
-            int index =484;
+            });
+            System.out.println(sb.toString());
             for (ProductInfo info : data) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("INSERT INTO supplychain.commodity ( `merchant_id`, `serial_number`, `brand`, ")
-                        .append("`commodity_name`, `logistics_code`, `unit`, `quantity`, `price`, `is_valid`,")
-                        .append("`is_deleted`) VALUES (2, ")
-                        .append(index++).append(",'")
-                        .append(info.getBrand()).append("','")
-                        .append(info.getName()).append("','")
-                        .append(info.getCode()).append("','")
-                        .append(info.getUnit()).append("',")
-                        .append(info.getAmount()).append(",")
-                        .append(info.getPrice()).append(",")
-                        .append("'1','0');");
-                System.out.println(sb.toString());
+
             }
 
             long needTime = System.currentTimeMillis() - startTime;

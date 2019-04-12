@@ -7,28 +7,13 @@ package com.example.myapp;
  * @version: $version$
  */
 public class ProductInfo {
-    private String brand;
-    private String code;
     private String name;
-    private String unit;
-    private String amount;
-    private String price;
-
-    public String getBrand() {
-        return brand;
-    }
-
-    public void setBrand(String brand) {
-        this.brand = brand;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
+    private String idCard;
+    private String mobile;
+    private String supplierName;
+    private String supplierCode;
+    private String supplierAddress;
+    private String supplierMobile;
 
     public String getName() {
         return name;
@@ -38,27 +23,51 @@ public class ProductInfo {
         this.name = name;
     }
 
-    public String getUnit() {
-        return unit;
+    public String getIdCard() {
+        return idCard;
     }
 
-    public void setUnit(String unit) {
-        this.unit = unit;
+    public void setIdCard(String idCard) {
+        this.idCard = idCard;
     }
 
-    public String getAmount() {
-        return amount;
+    public String getMobile() {
+        return mobile;
     }
 
-    public void setAmount(String amount) {
-        this.amount = amount;
+    public void setMobile(String mobile) {
+        this.mobile = mobile;
     }
 
-    public String getPrice() {
-        return price;
+    public String getSupplierName() {
+        return supplierName;
     }
 
-    public void setPrice(String price) {
-        this.price = price;
+    public void setSupplierName(String supplierName) {
+        this.supplierName = supplierName;
+    }
+
+    public String getSupplierCode() {
+        return supplierCode;
+    }
+
+    public void setSupplierCode(String supplierCode) {
+        this.supplierCode = supplierCode;
+    }
+
+    public String getSupplierAddress() {
+        return supplierAddress;
+    }
+
+    public void setSupplierAddress(String supplierAddress) {
+        this.supplierAddress = supplierAddress;
+    }
+
+    public String getSupplierMobile() {
+        return supplierMobile;
+    }
+
+    public void setSupplierMobile(String supplierMobile) {
+        this.supplierMobile = supplierMobile;
     }
 }
